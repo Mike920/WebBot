@@ -1,0 +1,14 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+
+<div class="row">
+
+        <br/>
+        @Html.ActionLink("Wyslij wojsko","Run")
+        <br/>
+        @Html.Raw(TempData["message"])
+      @*<h3>Last errors</h3>
+    <p>ViewBag.Errors</p>*@  
+</div>
