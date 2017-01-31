@@ -19,7 +19,7 @@ namespace TravianBot.Models
             ITrigger trigger = TriggerBuilder.Create()
                 .StartNow()
                 .WithSimpleSchedule(x => x
-                    .WithIntervalInMinutes(20)
+                    .WithIntervalInMinutes(30)
                     .RepeatForever())
                 .Build();
 
