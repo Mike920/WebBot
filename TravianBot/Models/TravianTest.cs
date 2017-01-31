@@ -1,131 +1,70 @@
-﻿using System;
-using System.Text;
-using System.Text.RegularExpressions;
+﻿using SimpleBrowser;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using OpenQA.Selenium;
-using OpenQA.Selenium.IE;
-using System.Web;
+using System.Threading.Tasks;
 
 namespace TravianBot.Models
 {
     //[TestFixture]
-    public class Travian
+    public static class Travian
     {
-        private IWebDriver driver;
-        private StringBuilder verificationErrors;
-        private string baseURL;
-        private bool acceptNextAlert = true;
 
 
-        public void RunTest()
+        private static async void SaveInfo(string str)
         {
-            SetupTest();
-            TheTravianTest();
-            TeardownTest();
-        }
-
-        //[SetUp]
-        public void SetupTest()
-        {
-            var ieServerPath = HttpContext.Current.Server.MapPath("~/");
-            driver = new InternetExplorerDriver(ieServerPath, new InternetExplorerOptions { IntroduceInstabilityByIgnoringProtectedModeSettings = true});
-            baseURL = "http://tx3.travian.pl/";
-            verificationErrors = new StringBuilder();
-        }
-
-        //[TearDown]
-        public void TeardownTest()
-        {
-            try
+            using (var client = new HttpClient())
             {
-                driver.Quit();
-            }
-            catch (Exception)
-            {
-                // Ignore errors if unable to close the browser
-            }
-           // Assert.AreEqual("", verificationErrors.ToString());
-        }
-
-        //[Test]
-        public void TheTravianTest()
-        {
-            driver.Navigate().GoToUrl(baseURL + "/");
-            driver.FindElement(By.Name("name")).Clear();
-            driver.FindElement(By.Name("name")).SendKeys("boruke");
-            driver.FindElement(By.Name("password")).Clear();
-            driver.FindElement(By.Name("password")).SendKeys("kamilkos");
-            driver.FindElement(By.Id("s1")).Click();
-            Thread.Sleep(new TimeSpan(0, 0, 2));
-            driver.FindElement(By.PartialLinkText("GRABIEŻ")).Click();
-            driver.FindElement(By.PartialLinkText("GRABIEŻ")).Click();
-            Thread.Sleep(new TimeSpan(0, 0, 2));
-            
-            //driver.FindElement(By.XPath("//a[contains(text(),'" + "GRABIEŻ" + "')]")).Click();
-            driver.FindElement(By.CssSelector("#raidList > div:nth-child(1) > form > div.listContent > div.detail > div.markAll > input")).Click();
-            Thread.Sleep(new TimeSpan(0, 0, 2));
-           // driver.FindElement(By.CssSelector("#raidList > div:nth-child(1) > form > div.listContent > div.detail > div.markAll > input")).Click();
-
-            driver.FindElement(By.CssSelector("#raidList > div:nth-child(1) > form > div.listContent > button")).Click();
-            Thread.Sleep(new TimeSpan(0, 0, 2));
-           // driver.FindElement(By.CssSelector("#raidList > div:nth-child(1) > form > div.listContent > button")).Click();
-
-
-            //old
-            //driver.Navigate().GoToUrl(baseURL + "/");
-            //driver.FindElement(By.Name("name")).Clear();
-            //driver.FindElement(By.Name("name")).SendKeys("boruke");
-            //driver.FindElement(By.Name("password")).Clear();
-            //driver.FindElement(By.Name("password")).SendKeys("kamilkos");
-            //driver.FindElement(By.Id("s1")).Click();
-            //driver.FindElement(By.LinkText("GRABIEŻ")).Click();
-            //driver.FindElement(By.XPath("//div/input")).Click();
-            //driver.FindElement(By.XPath("//form/div[2]/button")).Click();
-        }
-        private bool IsElementPresent(By by)
-        {
-            try
-            {
-                driver.FindElement(by);
-                return true;
-            }
-            catch (NoSuchElementException)
-            {
-                return false;
-            }
-        }
-
-        private bool IsAlertPresent()
-        {
-            try
-            {
-                driver.SwitchTo().Alert();
-                return true;
-            }
-            catch (NoAlertPresentException)
-            {
-                return false;
-            }
-        }
-
-        private string CloseAlertAndGetItsText()
-        {
-            try
-            {
-                IAlert alert = driver.SwitchTo().Alert();
-                string alertText = alert.Text;
-                if (acceptNextAlert)
+                var content = new FormUrlEncodedContent(new[]
                 {
-                    alert.Accept();
-                }
-                else {
-                    alert.Dismiss();
-                }
-                return alertText;
+                new KeyValuePair<string, string>("text", str)
+                });
+                var result = await client.PostAsync("http://travian-2.apphb.com/Home/StoreInfo", content);
+                string resultContent = await result.Content.ReadAsStringAsync();
             }
-            finally
+        }
+
+        private static void Sleep(int sec)
+        {
+            Thread.Sleep(new TimeSpan(0, 0, sec));
+        }
+
+        public static void RunTest()
+        {
+            Browser browser = new Browser(null, null, null);
+            browser.Navigate("http://tx3.travian.pl/");
+            Sleep(3);
+            browser.Find("input", FindBy.Name, "name").Value = "boruke";
+            browser.Find("input", FindBy.Name, "password").Value = "kamilkos";
+            browser.Find("s1").Click();
+            Sleep(3);
+            browser.Find("a", FindBy.PartialText, "GRABIEŻ").Click();
+            Sleep(3);
+            HtmlResult wyslijBtn = browser.Find("button", FindBy.PartialValue, "Wyślij na grabież");
+            for (int i = 0; i < wyslijBtn.Count<HtmlResult>() / 2; i++)
             {
-                acceptNextAlert = true;
+                foreach (HtmlResult mark in browser.Find("input", FindBy.PartialId, "slot"))
+                {
+                    mark.Click();
+                }
+                Sleep(1);
+                wyslijBtn.ElementAt<HtmlResult>(i).Click();
+                Sleep(2);
+                string info = string.Join(" ",
+                    from x in browser.Find("p", FindBy.PartialText, "wysłano")
+                    select x.Value);
+                try
+                {
+                    SaveInfo(string.Concat(DateTime.Now, " ", info));
+                }
+                catch (Exception exception)
+                {
+                }
+                wyslijBtn = browser.Find("button", FindBy.PartialValue, "Wyślij na grabież");
             }
         }
     }

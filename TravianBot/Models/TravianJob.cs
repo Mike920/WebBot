@@ -10,8 +10,7 @@ namespace TravianBot.Models
     {
         public void Execute(IJobExecutionContext context)
         {
-            Travian test = new Travian();
-            test.RunTest();
+            Travian.RunTest();
         }
     }
 }

@@ -5,10 +5,22 @@
 
 <div class="row">
 
-        <br/>
-        @Html.ActionLink("Wyslij wojsko","Run")
-        <br/>
-        @Html.Raw(TempData["message"])
-      @*<h3>Last errors</h3>
-    <p>ViewBag.Errors</p>*@  
+    <br />
+    @Html.ActionLink("Wyslij wojsko", "Run")
+    <br />
+    @Html.Raw(TempData["message"])
+
+    <br />
+    <h2>Ostatnie:</h2>
+    <p>
+        @if (HttpContext.Current.Application["info"] != null)
+    {
+        foreach (var item in ((IEnumerable<string>)HttpContext.Current.Application["info"]).Reverse())
+        {
+            <span>@item</span><br />
+        }
+    }
+</p>
+@*<h3>Last errors</h3>
+    <p>ViewBag.Errors</p>*@
 </div>

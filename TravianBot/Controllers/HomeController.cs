@@ -23,7 +23,7 @@ namespace TravianBot.Controllers
             TempData["message"] = "";
             try
             {
-                new Travian().RunTest();
+                Travian.RunTest();
             }
             catch (Exception e)
             {
@@ -52,62 +52,26 @@ namespace TravianBot.Controllers
 
         public void Browse()
         {
-            Travian travian = new Travian();
-
-            travian.SetupTest();
-            travian.TheTravianTest();
-            travian.TeardownTest();
-
-            //using (WebBrowser browser = new WebBrowser())
-            //{
-            //    browser.Navigate(_url);
-
-            //    //  browser.ClientSize = new Size(_width, _height);
-            //    //browser.ScrollBarsEnabled = false;
-            //    //browser.ScriptErrorsSuppressed = true;
-            //    //browser.Navigate(_url);
-
-            //    //// Wait for control to load page
-            //    //while (browser.ReadyState != WebBrowserReadyState.Complete)
-            //    //    Application.DoEvents();
-
-            //    //html = browser.DocumentText;
-
-            //}
         }
 
-   
-        //string html = "";
-        //public string GetWebpage(string url)
-        //{
-        //    _url = url;
-        //    // WebBrowser is an ActiveX control that must be run in a
-        //    // single-threaded apartment so create a thread to create the
-        //    // control and generate the thumbnail
-        //    Thread thread = new Thread(new ThreadStart(GetWebPageWorker));
-        //    thread.SetApartmentState(ApartmentState.STA);
-        //    thread.Start();
-        //    thread.Join();
-        //    string s = html;
-        //    return s;
-        //}
+        private object ThisLock = new object();
 
-        //protected void GetWebPageWorker()
-        //{
-        //    using (WebBrowser browser = new WebBrowser())
-        //    {
-        //        //  browser.ClientSize = new Size(_width, _height);
-        //        browser.ScrollBarsEnabled = false;
-        //        browser.ScriptErrorsSuppressed = true;
-        //        browser.Navigate(_url);
+        [HttpPost]
+        public string StoreInfo(string text)
+        {
+            lock (this.ThisLock)
+            {
+                if (base.HttpContext.Application["info"] == null)
+                {
+                    base.HttpContext.Application["info"] = new List<string>();
+                }
+                List<string> list = (List<string>)base.HttpContext.Application["info"];
+                list.Add(text);
+                base.HttpContext.Application["info"] = list;
+            }
 
-        //        // Wait for control to load page
-        //        while (browser.ReadyState != WebBrowserReadyState.Complete)
-        //            Application.DoEvents();
+            return "OK";
+        }
 
-        //        html = browser.DocumentText;
-
-        //    }
-        //}
     }
 }
